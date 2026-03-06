@@ -1,0 +1,7 @@
+{
+  "name": "GS Veiculos",
+  "description": "Sistema completo para gestão de revenda de veículos GS Veiculos, incluindo controle de estoque, vendas, despesas e relatórios financeiros.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

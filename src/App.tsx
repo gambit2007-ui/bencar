@@ -856,14 +856,23 @@ export default function App() {
       const sale = sales.find((s) => s.id === id);
       const vehicleId = Number(sale?.vehicle_id || 0);
 
-      const { error } = await supabase.from('sales').delete().eq('id', id);
-      if (error) throw error;
-
       if (vehicleId) {
-        await supabase
+        const { error: statusError } = await supabase
           .from('vehicles')
           .update({ status: 'Em Estoque' })
           .eq('id', vehicleId);
+        if (statusError) throw statusError;
+      }
+
+      const { error } = await supabase.from('sales').delete().eq('id', id);
+      if (error) {
+        if (vehicleId) {
+          await supabase
+            .from('vehicles')
+            .update({ status: 'Vendido' })
+            .eq('id', vehicleId);
+        }
+        throw error;
       }
 
       await Promise.all([fetchSales(), fetchVehicles()]);
@@ -1949,10 +1958,11 @@ export default function App() {
                       );
 
                       if (firstImage) {
-                        await supabase
+                        const { error: imageError } = await supabase
                           .from('vehicles')
                           .update({ image_url: firstImage.url })
                           .eq('id', vehicleId);
+                        if (imageError) throw imageError;
                       }
 
                       setVehicleUploadFiles([]);
@@ -2428,6 +2438,8 @@ export default function App() {
                   try {
                     const vehicleId = Number(data.vehicle_id || 0);
                     const salePrice = Number(data.sale_price || 0);
+                    const clientIdRaw = Number(data.client_id || 0);
+                    const clientId = clientIdRaw > 0 ? clientIdRaw : null;
 
                     const vehicle = vehicles.find((v) => v.id === vehicleId);
                     if (!vehicle) throw new Error('Veículo não encontrado');
@@ -2439,22 +2451,33 @@ export default function App() {
                     const profit =
                       salePrice - (num(vehicle.purchase_value) + vehicleExpenses);
 
-                    const { error } = await supabase.from('sales').insert({
-                      vehicle_id: vehicleId,
-                      client_id: Number(data.client_id || 0),
-                      sale_date: String(data.sale_date || ''),
-                      sale_price: salePrice,
-                      payment_method: String(data.payment_method || ''),
-                      notes: String(data.notes || ''),
-                      profit,
-                    });
+                    const { data: insertedSale, error } = await supabase
+                      .from('sales')
+                      .insert({
+                        vehicle_id: vehicleId,
+                        client_id: clientId,
+                        sale_date: String(data.sale_date || ''),
+                        sale_price: salePrice,
+                        payment_method: String(data.payment_method || ''),
+                        notes: String(data.notes || ''),
+                        profit,
+                      })
+                      .select('id')
+                      .single();
 
                     if (error) throw error;
+                    const saleId = Number((insertedSale as any)?.id || 0);
 
-                    await supabase
+                    const { error: vehicleStatusError } = await supabase
                       .from('vehicles')
                       .update({ status: 'Vendido' })
                       .eq('id', vehicleId);
+                    if (vehicleStatusError) {
+                      if (saleId) {
+                        await supabase.from('sales').delete().eq('id', saleId);
+                      }
+                      throw vehicleStatusError;
+                    }
 
                     setIsSaleModalOpen(false);
                     await Promise.all([fetchSales(), fetchVehicles()]);
@@ -3012,3 +3035,5 @@ export default function App() {
     </div>
   );
 }
+
+

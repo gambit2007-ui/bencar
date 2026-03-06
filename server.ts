@@ -5,11 +5,25 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const PORT = 3000;
+dotenv.config();
 
+const PORT = Number(process.env.PORT || 3000);
+const MAX_JSON_SIZE = process.env.MAX_JSON_SIZE || "1mb";
+const MAX_UPLOAD_SIZE_MB = Number(process.env.MAX_UPLOAD_SIZE_MB || 10);
+const MAX_UPLOAD_FILES = Number(process.env.MAX_UPLOAD_FILES || 20);
+const SERVER_API_KEY = (process.env.SERVER_API_KEY || "").trim();
+const ALLOWED_UPLOAD_MIME = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+]);
 const db = new Database("auto_gestao.db");
 db.pragma("foreign_keys = ON");
 
@@ -211,10 +225,35 @@ async function startServer() {
     },
   });
 
-  const upload = multer({ storage });
+  const upload = multer({
+    storage,
+    limits: {
+      fileSize: MAX_UPLOAD_SIZE_MB * 1024 * 1024,
+      files: MAX_UPLOAD_FILES,
+    },
+    fileFilter: (_req, file, cb) => {
+      if (ALLOWED_UPLOAD_MIME.has(file.mimetype)) {
+        cb(null, true);
+        return;
+      }
+      cb(new Error(`Tipo de arquivo não permitido: ${file.mimetype || "desconhecido"}`));
+    },
+  });
 
-  app.use(express.json());
+  app.use(express.json({ limit: MAX_JSON_SIZE }));
   app.use("/uploads", express.static(uploadsDir));
+
+  if (SERVER_API_KEY) {
+    app.use("/api", (req, res, next) => {
+      const providedApiKey = String(req.header("x-api-key") || "").trim();
+      if (providedApiKey !== SERVER_API_KEY) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+      next();
+    });
+  } else {
+    console.warn("SERVER_API_KEY is not configured. API routes are unsecured.");
+  }
 
   function fileUrl(filename: string) {
     return `/uploads/${filename}`;
@@ -929,6 +968,18 @@ async function startServer() {
     }
   });
 
+  app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+
+    if (err?.message?.includes?.("Tipo de arquivo")) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+
+    return next(err);
+  });
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -948,3 +999,7 @@ async function startServer() {
 }
 
 startServer();
+
+
+
+

@@ -20,6 +20,8 @@ import {
   ChevronUp,
   LogOut,
   Loader2,
+  Paperclip,
+  Camera,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -2132,16 +2134,44 @@ export default function App() {
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                       Anexos do Veículo (PDF/JPG/PNG)
                     </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,application/pdf"
-                      capture="environment"
-                      onChange={(e) =>
-                        setVehicleUploadFiles(Array.from(e.target.files || []))
-                      }
-                      className="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl"
-                    />
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-colors">
+                        <Paperclip className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Adicionar arquivo</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,application/pdf"
+                          className="hidden"
+                          onChange={(e) =>
+                            setVehicleUploadFiles((prev) => [
+                              ...prev,
+                              ...Array.from(e.target.files || []),
+                            ])
+                          }
+                        />
+                      </label>
+
+                      <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-colors">
+                        <Camera className="w-4 h-4" />
+                        <span className="text-sm font-semibold">Foto na hora</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={(e) =>
+                            setVehicleUploadFiles((prev) => [
+                              ...prev,
+                              ...Array.from(e.target.files || []),
+                            ])
+                          }
+                        />
+                      </label>
+                    </div>
+
                     {vehicleUploadFiles.length > 0 && (
                       <p className="text-xs text-zinc-400">
                         {vehicleUploadFiles.length} arquivo(s) selecionado(s)
@@ -2350,16 +2380,50 @@ export default function App() {
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     Documentos / Fotos
                   </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,application/pdf"
-                    capture="environment"
-                    onChange={(e) =>
-                      setClientUploadFiles(Array.from(e.target.files || []))
-                    }
-                    className={darkInputClass}
-                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-colors">
+                      <Paperclip className="w-4 h-4" />
+                      <span className="text-sm font-semibold">Adicionar arquivo</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={(e) =>
+                          setClientUploadFiles((prev) => [
+                            ...prev,
+                            ...Array.from(e.target.files || []),
+                          ])
+                        }
+                      />
+                    </label>
+
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-colors">
+                      <Camera className="w-4 h-4" />
+                      <span className="text-sm font-semibold">Foto na hora</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) =>
+                          setClientUploadFiles((prev) => [
+                            ...prev,
+                            ...Array.from(e.target.files || []),
+                          ])
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  {clientUploadFiles.length > 0 && (
+                    <p className="text-xs text-zinc-400">
+                      {clientUploadFiles.length} arquivo(s) selecionado(s)
+                    </p>
+                  )}
+
                   <p className="text-xs text-zinc-500">
                     No celular, você pode abrir a câmera e tirar a foto na hora.
                   </p>
@@ -2852,16 +2916,44 @@ export default function App() {
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     Fotos / Documentos (PDF/JPG/PNG)
                   </label>
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,application/pdf"
-                    capture="environment"
-                    onChange={(e) =>
-                      setSaleChecklistUploadFiles(Array.from(e.target.files || []))
-                    }
-                    className="w-full p-3 bg-zinc-900 border border-zinc-800 rounded-xl"
-                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-colors">
+                      <Paperclip className="w-4 h-4" />
+                      <span className="text-sm font-semibold">Adicionar arquivo</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={(e) =>
+                          setSaleChecklistUploadFiles((prev) => [
+                            ...prev,
+                            ...Array.from(e.target.files || []),
+                          ])
+                        }
+                      />
+                    </label>
+
+                    <label className="cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-200 hover:bg-zinc-800 transition-colors">
+                      <Camera className="w-4 h-4" />
+                      <span className="text-sm font-semibold">Foto na hora</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) =>
+                          setSaleChecklistUploadFiles((prev) => [
+                            ...prev,
+                            ...Array.from(e.target.files || []),
+                          ])
+                        }
+                      />
+                    </label>
+                  </div>
+
                   {saleChecklistUploadFiles.length > 0 && (
                     <p className="text-xs text-zinc-400">
                       {saleChecklistUploadFiles.length} arquivo(s) selecionado(s)
@@ -3035,5 +3127,10 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+
 
 

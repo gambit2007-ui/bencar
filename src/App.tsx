@@ -280,7 +280,7 @@ const StatCard = ({
   icon: React.ElementType;
   colorClass: string;
 }) => (
-  <div className="bg-zinc-950 p-6 rounded-2xl shadow-lg border border-zinc-800 flex items-center gap-4">
+  <div className="bg-zinc-950 p-4 sm:p-6 rounded-2xl shadow-lg border border-zinc-800 flex items-center gap-3 sm:gap-4">
     <div className={`p-3 rounded-xl ${colorClass} shadow-lg shadow-black/20`}>
       <Icon className="w-6 h-6 text-white" />
     </div>
@@ -304,7 +304,7 @@ const QuickAction = ({
 }) => (
   <button
     onClick={onClick}
-    className="bg-zinc-950 p-6 rounded-2xl shadow-lg border border-zinc-800 flex flex-col items-center text-center gap-2 hover:bg-zinc-900 transition-colors group"
+    className="bg-zinc-950 p-4 sm:p-6 rounded-2xl shadow-lg border border-zinc-800 flex flex-col items-center text-center gap-2 hover:bg-zinc-900 transition-colors group"
   >
     <div className="p-4 rounded-full bg-orange-600/15 group-hover:bg-orange-600/25 transition-colors">
       <Icon className="w-6 h-6 text-orange-400" />
@@ -326,7 +326,7 @@ const VehicleCard = ({
   onChecklist?: (v: Vehicle) => void;
 }) => (
   <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-hidden">
-    <div className="relative h-48 bg-zinc-900">
+    <div className="relative h-40 sm:h-48 bg-zinc-900">
       {vehicle.image_url ? (
         <img
           src={vehicle.image_url}
@@ -344,8 +344,8 @@ const VehicleCard = ({
       </div>
     </div>
 
-    <div className="p-5">
-      <div className="flex justify-between items-start mb-4">
+    <div className="p-4 sm:p-5">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
         <div>
           <h3 className="text-lg font-bold text-white">
             {vehicle.brand} {vehicle.model}
@@ -355,7 +355,7 @@ const VehicleCard = ({
           </p>
         </div>
 
-        <div className="flex gap-1">
+        <div className="flex gap-1 self-end sm:self-auto">
           <button
             onClick={() => onEdit(vehicle)}
             className="p-2 text-zinc-400 hover:text-orange-300 hover:bg-zinc-900 rounded-lg transition-all"
@@ -394,8 +394,8 @@ const VehicleCard = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
-        <div className="flex items-center gap-4 text-xs text-zinc-400">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-zinc-800">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-400">
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3" />
             {formatYMD(vehicle.purchase_date)}
@@ -950,7 +950,7 @@ export default function App() {
           <div className="space-y-8">
             <section>
               <h2 className="text-xl font-bold text-white mb-4">Ações Rápidas</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <QuickAction
                   title="Cadastrar Carro"
                   subtitle="Novo veículo"
@@ -987,7 +987,7 @@ export default function App() {
             </section>
 
             <section className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 className="text-xl font-bold text-white">Resumo do Mês</h2>
                 <div className="flex items-center gap-2 bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800 text-sm font-medium text-zinc-600 capitalize">
                   <Calendar className="w-4 h-4" />
@@ -1042,7 +1042,7 @@ export default function App() {
                   setVehicleUploadFiles([]);
                   setIsAddModalOpen(true);
                 }}
-                className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
+                className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
                 Novo Veículo
@@ -1100,7 +1100,7 @@ export default function App() {
                   setSaleChecklistUploadFiles([]);
                   setIsSaleChecklistModalOpen(true);
                 }}
-                className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
+                className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
                 Novo Checklist
@@ -1233,15 +1233,15 @@ export default function App() {
                   setClientUploadFiles([]);
                   setIsClientModalOpen(true);
                 }}
-                className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
+                className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
                 Novo Cliente
               </button>
             </div>
 
-            <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-x-auto">
+              <table className="w-full min-w-[680px] text-left border-collapse">
                 <thead>
                   <tr className="bg-zinc-900 text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     <th className="px-6 py-4">Nome</th>
@@ -1310,15 +1310,15 @@ export default function App() {
 
               <button
                 onClick={() => setIsExpenseModalOpen(true)}
-                className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
+                className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
                 Nova Despesa
               </button>
             </div>
 
-            <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-x-auto">
+              <table className="w-full min-w-[680px] text-left border-collapse">
                 <thead>
                   <tr className="bg-zinc-900 text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     <th className="px-6 py-4">Veículo</th>
@@ -1384,15 +1384,15 @@ export default function App() {
 
               <button
                 onClick={() => setIsSaleModalOpen(true)}
-                className="bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
+                className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
                 Nova Venda
               </button>
             </div>
 
-            <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="bg-zinc-950 rounded-2xl shadow-lg border border-zinc-800 overflow-x-auto">
+              <table className="w-full min-w-[680px] text-left border-collapse">
                 <thead>
                   <tr className="bg-zinc-900 text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     <th className="px-6 py-4">Veículo</th>
@@ -1453,7 +1453,7 @@ export default function App() {
       case 'Relatórios':
         return (
           <div className="space-y-6 pb-10">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-2xl font-bold text-white">Relatórios Financeiros</h2>
               <div className="text-sm text-zinc-400 bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">
                 Últimos 12 meses
@@ -1511,7 +1511,7 @@ export default function App() {
                         expandedMonth === report.month ? null : report.month,
                       )
                     }
-                    className="w-full p-5 flex items-center justify-between hover:bg-zinc-900 transition-colors"
+                    className="w-full p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between hover:bg-zinc-900 transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="bg-zinc-100 p-2 rounded-lg">
@@ -1530,7 +1530,7 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 sm:gap-6">
                       <div className="text-right">
                         <p className="text-xs text-zinc-400 uppercase font-bold tracking-wider">
                           Lucro (vendas - despesas)
@@ -1698,7 +1698,7 @@ export default function App() {
                                 {report.cashflow.map((it, idx) => (
                                   <div
                                     key={idx}
-                                    className="flex items-center justify-between p-3 bg-zinc-900 rounded-xl border border-zinc-800"
+                                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-zinc-900 rounded-xl border border-zinc-800"
                                   >
                                     <div>
                                       <p className="font-bold text-sm text-white">
@@ -1766,7 +1766,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-black font-sans text-white">
+    <div className="min-h-screen bg-black font-sans text-white overflow-x-hidden">
       <AnimatePresence>
         {isSidebarOpen && (
           <motion.div
@@ -1780,7 +1780,7 @@ export default function App() {
       </AnimatePresence>
 
       <aside
-        className={`fixed inset-y-0 left-0 w-72 bg-zinc-950 border-r border-zinc-800 z-50 transition-transform duration-300 transform ${
+        className={`fixed inset-y-0 left-0 w-[86vw] max-w-72 bg-zinc-950 border-r border-zinc-800 z-50 transition-transform duration-300 transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0`}
       >
@@ -1838,7 +1838,7 @@ export default function App() {
       </aside>
 
       <main className="lg:ml-72 min-h-screen">
-        <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-zinc-800 p-4 flex items-center justify-between z-30">
+        <header className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-zinc-800 p-3 sm:p-4 flex items-center justify-between z-30">
           <button
             onClick={() => setIsSidebarOpen(true)}
             className="lg:hidden p-2 text-zinc-600"
@@ -1866,7 +1866,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-3 sm:p-6 max-w-7xl mx-auto">
           <motion.div
             key={activeTab}
             initial={{ opacity: 0, y: 10 }}
@@ -1881,7 +1881,7 @@ export default function App() {
       {/* MODAL VEÍCULO */}
       <AnimatePresence>
         {isAddModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -1893,9 +1893,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-zinc-950 rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[90vh] flex flex-col"
+              className="relative w-full sm:max-w-2xl bg-zinc-950 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[92vh] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <h2 className="text-xl font-bold text-white">
                   {selectedVehicle ? 'Editar Veículo' : 'Novo Veículo'}
                 </h2>
@@ -1908,7 +1908,7 @@ export default function App() {
               </div>
 
               <form
-                className="p-6 overflow-y-auto space-y-6"
+                className="p-4 sm:p-6 overflow-y-auto space-y-6"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -2222,7 +2222,7 @@ export default function App() {
       {/* MODAL CLIENTE */}
       <AnimatePresence>
         {isClientModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2234,9 +2234,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-zinc-950 rounded-3xl shadow-2xl overflow-hidden border border-zinc-800"
+              className="relative w-full sm:max-w-lg bg-zinc-950 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[92vh] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <h2 className="text-xl font-bold text-white">
                   {selectedClient ? 'Editar Cliente' : 'Novo Cliente'}
                 </h2>
@@ -2249,7 +2249,7 @@ export default function App() {
               </div>
 
               <form
-                className="p-6 space-y-4"
+                className="p-4 sm:p-6 space-y-4"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -2316,7 +2316,7 @@ export default function App() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                       E-mail
@@ -2468,7 +2468,7 @@ export default function App() {
       {/* MODAL VENDA */}
       <AnimatePresence>
         {isSaleModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2480,9 +2480,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-zinc-950 rounded-3xl shadow-2xl overflow-hidden border border-zinc-800"
+              className="relative w-full sm:max-w-lg bg-zinc-950 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[92vh] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <h2 className="text-xl font-bold text-white">Registrar Venda</h2>
                 <button
                   onClick={() => setIsSaleModalOpen(false)}
@@ -2493,7 +2493,7 @@ export default function App() {
               </div>
 
               <form
-                className="p-6 space-y-4"
+                className="p-4 sm:p-6 space-y-4"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -2583,7 +2583,7 @@ export default function App() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                       Data da Venda *
@@ -2653,7 +2653,7 @@ export default function App() {
       {/* MODAL DESPESA */}
       <AnimatePresence>
         {isExpenseModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2665,9 +2665,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-zinc-950 rounded-3xl shadow-2xl overflow-hidden border border-zinc-800"
+              className="relative w-full sm:max-w-lg bg-zinc-950 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[92vh] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <h2 className="text-xl font-bold text-white">Nova Despesa</h2>
                 <button
                   onClick={() => setIsExpenseModalOpen(false)}
@@ -2678,7 +2678,7 @@ export default function App() {
               </div>
 
               <form
-                className="p-6 space-y-4"
+                className="p-4 sm:p-6 space-y-4"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -2731,7 +2731,7 @@ export default function App() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                       Data *
@@ -2789,7 +2789,7 @@ export default function App() {
       {/* MODAL CHECKLIST VENDA */}
       <AnimatePresence>
         {isSaleChecklistModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2801,9 +2801,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-zinc-950 rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[90vh] flex flex-col"
+              className="relative w-full sm:max-w-2xl bg-zinc-950 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[92vh] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <h2 className="text-xl font-bold text-white">
                   Novo Checklist de Venda
                 </h2>
@@ -2816,7 +2816,7 @@ export default function App() {
               </div>
 
               <form
-                className="p-6 overflow-y-auto space-y-4"
+                className="p-4 sm:p-6 overflow-y-auto space-y-4"
                 onSubmit={async (e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
@@ -2986,7 +2986,7 @@ export default function App() {
       {/* MODAL CHECKLIST VEÍCULO */}
       <AnimatePresence>
         {isChecklistModalOpen && selectedVehicle && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -2998,9 +2998,9 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-2xl bg-zinc-950 rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[90vh] flex flex-col"
+              className="relative w-full sm:max-w-2xl bg-zinc-950 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border border-zinc-800 max-h-[92vh] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <div>
                   <h2 className="text-xl font-bold text-white">
                     Checklist do Veículo
@@ -3019,7 +3019,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="p-6 overflow-y-auto space-y-6">
+              <div className="p-4 sm:p-6 overflow-y-auto space-y-6">
                 {currentChecklist && (
                   <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -3127,6 +3127,8 @@ export default function App() {
     </div>
   );
 }
+
+
 
 
 

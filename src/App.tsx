@@ -463,6 +463,8 @@ export default function App() {
 
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedExpense, setSelectedExpense] = useState<ExpenseRow | null>(null);
+  const [selectedSaleChecklist, setSelectedSaleChecklist] = useState<SaleChecklist | null>(null);
 
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -500,6 +502,51 @@ export default function App() {
   const darkInputClass =
     'w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30';
 
+  const getSupabaseErrorMessage = (err: any, fallback: string) => {
+    if (!err) return fallback;
+    const message = String(err.message || fallback);
+    const details = [err.code, err.details, err.hint]
+      .filter(Boolean)
+      .map((v) => String(v))
+      .join(' | ');
+    return details ? `${message} (${details})` : message;
+  };
+
+  const throwStepError = (step: string, err: any): never => {
+    throw {
+      step,
+      code: err?.code,
+      message: err?.message || 'Erro desconhecido',
+      details: err?.details,
+      hint: err?.hint,
+      original: err,
+    };
+  };
+
+  const isForeignKeyConflict = (err: any) => {
+    const code = String(err?.code || '');
+    const message = String(err?.message || '');
+    return code === '23503' || /foreign key|constraint/i.test(message);
+  };
+
+  const extractReferencedTable = (err: any) => {
+    const source = `${String(err?.details || '')} ${String(err?.message || '')}`;
+    const match = source.match(/table ["']?([a-zA-Z0-9_]+)["']?/i);
+    return match?.[1] || null;
+  };
+
+  const formatDeleteConflictMessage = (err: any) => {
+    const stepPrefix = err?.step ? `${err.step}: ` : '';
+    if (isForeignKeyConflict(err)) {
+      const table = extractReferencedTable(err);
+      if (table) {
+        return `${stepPrefix}existem registros vinculados em "${table}". Exclua os vinculos relacionados ou ajuste cascade/RLS no banco.`;
+      }
+      return `${stepPrefix}existem registros vinculados ao veiculo. Exclua os vinculos e tente novamente.`;
+    }
+    return `${stepPrefix}${getSupabaseErrorMessage(err, 'Erro desconhecido')}`;
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -529,6 +576,7 @@ export default function App() {
     if (!session) return;
     refreshAllData();
   }, [session]);
+
   useEffect(() => {
     const total = Math.max(1, Math.ceil(clients.length / PAGE_SIZE));
     setClientsPage((prev) => Math.min(prev, total));
@@ -543,8 +591,6 @@ export default function App() {
     const total = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
     setSalesPage((prev) => Math.min(prev, total));
   }, [sales.length]);
-
-
   async function refreshAllData() {
     await Promise.all([
       fetchClients(),
@@ -856,15 +902,84 @@ export default function App() {
   const handleDeleteVehicle = async (id: number) => {
     if (
       !confirm(
-        'Tem certeza que deseja excluir este veículo? Todos os dados vinculados também serão removidos.',
+        'Tem certeza que deseja excluir este veiculo? Todos os dados vinculados tambem serao removidos.',
       )
     ) {
       return;
     }
 
     try {
+      const { data: linkedChecklists, error: linkedChecklistsError } = await supabase
+        .from('sale_checklists')
+        .select('id')
+        .eq('vehicle_id', id);
+      if (linkedChecklistsError) {
+        throwStepError(
+          'Falha ao buscar checklists de venda vinculados',
+          linkedChecklistsError,
+        );
+      }
+
+      const checklistIds = (linkedChecklists || []).map((r: any) => Number(r.id));
+
+      if (checklistIds.length > 0) {
+        const { error: checklistFilesError } = await supabase
+          .from('sale_checklist_files')
+          .delete()
+          .in('checklist_id', checklistIds);
+        if (checklistFilesError) {
+          throwStepError(
+            'Falha ao excluir arquivos de checklist de venda',
+            checklistFilesError,
+          );
+        }
+      }
+
+      const { error: saleChecklistsError } = await supabase
+        .from('sale_checklists')
+        .delete()
+        .eq('vehicle_id', id);
+      if (saleChecklistsError) {
+        throwStepError('Falha ao excluir checklists de venda', saleChecklistsError);
+      }
+
+      const { error: checklistsError } = await supabase
+        .from('checklists')
+        .delete()
+        .eq('vehicle_id', id);
+      if (checklistsError) {
+        throwStepError('Falha ao excluir checklists', checklistsError);
+      }
+
+      const { error: expensesError } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('vehicle_id', id);
+      if (expensesError) {
+        throwStepError('Falha ao excluir despesas vinculadas', expensesError);
+      }
+
+      const { error: salesError } = await supabase
+        .from('sales')
+        .delete()
+        .eq('vehicle_id', id);
+      if (salesError) {
+        throwStepError('Falha ao excluir vendas vinculadas', salesError);
+      }
+
+      const { error: vehicleFilesError } = await supabase
+        .from('vehicle_files')
+        .delete()
+        .eq('vehicle_id', id);
+      if (vehicleFilesError) {
+        throwStepError('Falha ao excluir arquivos do veiculo', vehicleFilesError);
+      }
+
       const { error } = await supabase.from('vehicles').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        throwStepError('Falha ao excluir veiculo', error);
+      }
+
       await Promise.all([
         fetchVehicles(),
         fetchSales(),
@@ -872,8 +987,15 @@ export default function App() {
         fetchSaleChecklists(),
       ]);
     } catch (err: any) {
-      console.error('Error deleting vehicle:', err);
-      alert(`Erro ao excluir veículo: ${err.message || 'Erro desconhecido'}`);
+      console.error('Error deleting vehicle:', {
+        step: err?.step,
+        code: err?.code,
+        message: err?.message,
+        details: err?.details,
+        hint: err?.hint,
+        original: err?.original || err,
+      });
+      alert(`Erro ao excluir veiculo: ${formatDeleteConflictMessage(err)}`);
     }
   };
 
@@ -881,12 +1003,58 @@ export default function App() {
     if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
 
     try {
+      const { data: linkedChecklists, error: linkedChecklistsError } = await supabase
+        .from('sale_checklists')
+        .select('id')
+        .eq('client_id', id);
+      if (linkedChecklistsError) {
+        throwStepError(
+          'Falha ao buscar checklists de venda vinculados',
+          linkedChecklistsError,
+        );
+      }
+
+      const checklistIds = (linkedChecklists || []).map((r: any) => Number(r.id));
+      if (checklistIds.length > 0) {
+        const { error: checklistFilesError } = await supabase
+          .from('sale_checklist_files')
+          .delete()
+          .in('checklist_id', checklistIds);
+        if (checklistFilesError) {
+          throwStepError(
+            'Falha ao excluir arquivos de checklist de venda',
+            checklistFilesError,
+          );
+        }
+      }
+
+      const { error: saleChecklistsError } = await supabase
+        .from('sale_checklists')
+        .delete()
+        .eq('client_id', id);
+      if (saleChecklistsError) {
+        throwStepError('Falha ao excluir checklists de venda', saleChecklistsError);
+      }
+
+      const { error: nullSalesClientError } = await supabase
+        .from('sales')
+        .update({ client_id: null })
+        .eq('client_id', id);
+      if (nullSalesClientError) throw nullSalesClientError;
+
+      const { error: clientFilesError } = await supabase
+        .from('client_files')
+        .delete()
+        .eq('client_id', id);
+      if (clientFilesError) throw clientFilesError;
+
       const { error } = await supabase.from('clients').delete().eq('id', id);
       if (error) throw error;
+
       await Promise.all([fetchClients(), fetchSales(), fetchSaleChecklists()]);
     } catch (err: any) {
       console.error('Error deleting client:', err);
-      alert(`Erro ao excluir cliente: ${err.message || 'Erro desconhecido'}`);
+      alert(`Erro ao excluir cliente: ${getSupabaseErrorMessage(err, 'Erro desconhecido')}`);
     }
   };
 
@@ -1059,7 +1227,7 @@ export default function App() {
                   title="Adicionar Despesa"
                   subtitle="Novo gasto"
                   icon={Receipt}
-                  onClick={() => setIsExpenseModalOpen(true)}
+                  onClick={() => { setSelectedExpense(null); setIsExpenseModalOpen(true); }}
                 />
               </div>
             </section>
@@ -1375,8 +1543,34 @@ export default function App() {
                 </tbody>
               </table>
             </div>
+
+            {clients.length > PAGE_SIZE && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+                <p className="text-xs text-zinc-400">
+                  Pagina {clientsPage} de {clientsTotalPages} - {clients.length} registros
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setClientsPage((p) => Math.max(1, p - 1))}
+                    disabled={clientsPage === 1}
+                    className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setClientsPage((p) => Math.min(clientsTotalPages, p + 1))}
+                    disabled={clientsPage >= clientsTotalPages}
+                    className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Proxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        );
+                );
 
       case 'Despesas':
         return (
@@ -1384,11 +1578,11 @@ export default function App() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-white">Despesas</h2>
-                <p className="text-zinc-400">Controle de gastos por veículo</p>
+                <p className="text-zinc-400">Controle de gastos por veiculo</p>
               </div>
 
               <button
-                onClick={() => setIsExpenseModalOpen(true)}
+                onClick={() => { setSelectedExpense(null); setIsExpenseModalOpen(true); }}
                 className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
@@ -1400,11 +1594,11 @@ export default function App() {
               <table className="w-full min-w-[680px] text-left border-collapse">
                 <thead>
                   <tr className="bg-zinc-900 text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    <th className="px-6 py-4">Veículo</th>
-                    <th className="px-6 py-4">Descrição</th>
+                    <th className="px-6 py-4">Veiculo</th>
+                    <th className="px-6 py-4">Descricao</th>
                     <th className="px-6 py-4">Data</th>
                     <th className="px-6 py-4">Valor</th>
-                    <th className="px-6 py-4 text-right">Ações</th>
+                    <th className="px-6 py-4 text-right">Acoes</th>
                   </tr>
                 </thead>
 
@@ -1425,13 +1619,25 @@ export default function App() {
                         R$ {num(e.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => handleDeleteExpense(e.id)}
-                          className="text-zinc-400 hover:text-red-600 p-1 transition-colors"
-                          title="Excluir Despesa"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedExpense(e);
+                              setIsExpenseModalOpen(true);
+                            }}
+                            className="text-zinc-400 hover:text-orange-400 p-1 transition-colors"
+                            title="Editar Despesa"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteExpense(e.id)}
+                            className="text-zinc-400 hover:text-red-600 p-1 transition-colors"
+                            title="Excluir Despesa"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1449,6 +1655,32 @@ export default function App() {
                 </tbody>
               </table>
             </div>
+
+            {expenses.length > PAGE_SIZE && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+                <p className="text-xs text-zinc-400">
+                  Pagina {expensesPage} de {expensesTotalPages} - {expenses.length} registros
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpensesPage((p) => Math.max(1, p - 1))}
+                    disabled={expensesPage === 1}
+                    className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpensesPage((p) => Math.min(expensesTotalPages, p + 1))}
+                    disabled={expensesPage >= expensesTotalPages}
+                    className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Proxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -1458,7 +1690,7 @@ export default function App() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-white">Vendas</h2>
-                <p className="text-zinc-400">Histórico de negociações concluídas</p>
+                <p className="text-zinc-400">Historico de negociacoes concluidas</p>
               </div>
 
               <button
@@ -1474,12 +1706,12 @@ export default function App() {
               <table className="w-full min-w-[680px] text-left border-collapse">
                 <thead>
                   <tr className="bg-zinc-900 text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    <th className="px-6 py-4">Veículo</th>
+                    <th className="px-6 py-4">Veiculo</th>
                     <th className="px-6 py-4">Cliente</th>
                     <th className="px-6 py-4">Data</th>
                     <th className="px-6 py-4">Valor</th>
                     <th className="px-6 py-4">Lucro</th>
-                    <th className="px-6 py-4 text-right">Ações</th>
+                    <th className="px-6 py-4 text-right">Acoes</th>
                   </tr>
                 </thead>
 
@@ -1526,6 +1758,32 @@ export default function App() {
                 </tbody>
               </table>
             </div>
+
+            {sales.length > PAGE_SIZE && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-3">
+                <p className="text-xs text-zinc-400">
+                  Pagina {salesPage} de {salesTotalPages} - {sales.length} registros
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSalesPage((p) => Math.max(1, p - 1))}
+                    disabled={salesPage === 1}
+                    className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSalesPage((p) => Math.min(salesTotalPages, p + 1))}
+                    disabled={salesPage >= salesTotalPages}
+                    className="px-3 py-2 rounded-lg border border-zinc-800 text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Proxima
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         );
 
@@ -3206,6 +3464,16 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
 
 
 

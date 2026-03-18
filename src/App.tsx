@@ -211,6 +211,12 @@ async function uploadFilesToSupabase(
 ): Promise<FileRecord[]> {
   if (!files.length) return [];
 
+  const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;
+  const oversized = files.find((file) => file.size > MAX_FILE_SIZE_BYTES);
+  if (oversized) {
+    throw new Error(`O arquivo ${oversized.name} excede 15MB.`);
+  }
+
   const tableMap = {
     clients: 'client_files',
     vehicles: 'vehicle_files',
@@ -223,9 +229,7 @@ async function uploadFilesToSupabase(
     'sale-checklists': 'checklist_id',
   } as const;
 
-  const uploaded: FileRecord[] = [];
-
-  for (const file of files) {
+  const uploadOneFile = async (file: File): Promise<FileRecord> => {
     const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin';
     const filePath = `${entity}/${id}/${Date.now()}-${Math.random()
       .toString(16)
@@ -258,9 +262,28 @@ async function uploadFilesToSupabase(
       .select('*')
       .single();
 
-    if (insertError) throw insertError;
-    uploaded.push(inserted as FileRecord);
-  }
+    if (insertError) {
+      await supabase.storage.from(STORAGE_BUCKET).remove([filePath]);
+      throw insertError;
+    }
+
+    return inserted as FileRecord;
+  };
+
+  const queue = [...files];
+  const uploaded: FileRecord[] = [];
+  const workerCount = Math.min(3, queue.length);
+
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (queue.length > 0) {
+        const file = queue.shift();
+        if (!file) return;
+        const uploadedFile = await uploadOneFile(file);
+        uploaded.push(uploadedFile);
+      }
+    }),
+  );
 
   return uploaded;
 }
@@ -332,6 +355,7 @@ const VehicleCard = ({
           src={vehicle.image_url}
           alt={vehicle.model}
           className="w-full h-full object-cover"
+          loading="lazy"
           referrerPolicy="no-referrer"
         />
       ) : (
@@ -458,19 +482,11 @@ export default function App() {
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [expandedMonth, setExpandedMonth] = useState<string | null>(null);
 
-  const [monthlyReports, setMonthlyReports] = useState<MonthlyReport[]>([]);
-  const [stats, setStats] = useState<DashboardStats>({
-    stockCount: 0,
-    stockValue: 0,
-    stockSaleValue: 0,
-    monthlyRevenue: 0,
-    monthlyExpenses: 0,
-    monthlyProfit: 0,
-    cashValue: 0,
-    totalSales: 0,
-    totalPurchases: 0,
-    totalProfit: 0,
-  });
+  const PAGE_SIZE = 12;
+  const [clientsPage, setClientsPage] = useState(1);
+  const [expensesPage, setExpensesPage] = useState(1);
+  const [salesPage, setSalesPage] = useState(1);
+
 
   const monthLabel = useMemo(
     () =>
@@ -513,10 +529,21 @@ export default function App() {
     if (!session) return;
     refreshAllData();
   }, [session]);
+  useEffect(() => {
+    const total = Math.max(1, Math.ceil(clients.length / PAGE_SIZE));
+    setClientsPage((prev) => Math.min(prev, total));
+  }, [clients.length]);
 
   useEffect(() => {
-    recomputeReportsAndStats();
-  }, [vehicles, sales, expenses]);
+    const total = Math.max(1, Math.ceil(expenses.length / PAGE_SIZE));
+    setExpensesPage((prev) => Math.min(prev, total));
+  }, [expenses.length]);
+
+  useEffect(() => {
+    const total = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
+    setSalesPage((prev) => Math.min(prev, total));
+  }, [sales.length]);
+
 
   async function refreshAllData() {
     await Promise.all([
@@ -667,43 +694,78 @@ export default function App() {
     }
   };
 
-  const recomputeReportsAndStats = () => {
+  const { stats, monthlyReports } = useMemo(() => {
     const currentMonth = new Date().toISOString().slice(0, 7);
 
-    const stockVehicles = vehicles.filter((v) => v.status !== 'Vendido');
-    const stockCount = stockVehicles.length;
-    const stockValue = stockVehicles.reduce(
-      (sum, v) => sum + num(v.purchase_value),
-      0,
-    );
-    const stockSaleValue = stockVehicles.reduce(
-      (sum, v) => sum + num(v.sale_value),
-      0,
-    );
+    let stockCount = 0;
+    let stockValue = 0;
+    let stockSaleValue = 0;
+    let totalPurchases = 0;
 
-    const totalSales = sales.reduce((sum, s) => sum + num(s.sale_price), 0);
-    const totalPurchases = vehicles.reduce(
-      (sum, v) => sum + num(v.purchase_value),
-      0,
-    );
-    const overallExpenses = expenses.reduce((sum, e) => sum + num(e.amount), 0);
-    const totalProfit =
-      sales.reduce((sum, s) => sum + num(s.profit), 0) - overallExpenses;
+    let totalSales = 0;
+    let totalSalesProfit = 0;
+    let monthlyRevenue = 0;
+    let monthlyProfit = 0;
+
+    let overallExpenses = 0;
+    let monthlyExpenses = 0;
+
+    const salesByMonth = new Map<string, SaleRow[]>();
+    const expensesByMonth = new Map<string, ExpenseRow[]>();
+    const purchasesByMonth = new Map<string, Vehicle[]>();
+
+    for (const v of vehicles) {
+      const purchase = num(v.purchase_value);
+      totalPurchases += purchase;
+      if (v.status !== 'Vendido') {
+        stockCount += 1;
+        stockValue += purchase;
+        stockSaleValue += num(v.sale_value);
+      }
+
+      const month = monthKey(v.purchase_date);
+      if (month) {
+        const rows = purchasesByMonth.get(month) || [];
+        rows.push(v);
+        purchasesByMonth.set(month, rows);
+      }
+    }
+
+    for (const s of sales) {
+      const salePrice = num(s.sale_price);
+      const profit = num(s.profit);
+      totalSales += salePrice;
+      totalSalesProfit += profit;
+
+      const month = monthKey(s.sale_date);
+      if (!month) continue;
+      if (month === currentMonth) {
+        monthlyRevenue += salePrice;
+        monthlyProfit += profit;
+      }
+      const rows = salesByMonth.get(month) || [];
+      rows.push(s);
+      salesByMonth.set(month, rows);
+    }
+
+    for (const e of expenses) {
+      const amount = num(e.amount);
+      overallExpenses += amount;
+
+      const month = monthKey(e.date);
+      if (!month) continue;
+      if (month === currentMonth) {
+        monthlyExpenses += amount;
+      }
+      const rows = expensesByMonth.get(month) || [];
+      rows.push(e);
+      expensesByMonth.set(month, rows);
+    }
+
+    const totalProfit = totalSalesProfit - overallExpenses;
     const cashValue = totalSales - totalPurchases - overallExpenses;
 
-    const monthlyRevenue = sales
-      .filter((s) => monthKey(s.sale_date) === currentMonth)
-      .reduce((sum, s) => sum + num(s.sale_price), 0);
-
-    const monthlyExpenses = expenses
-      .filter((e) => monthKey(e.date) === currentMonth)
-      .reduce((sum, e) => sum + num(e.amount), 0);
-
-    const monthlyProfit = sales
-      .filter((s) => monthKey(s.sale_date) === currentMonth)
-      .reduce((sum, s) => sum + num(s.profit), 0);
-
-    setStats({
+    const stats: DashboardStats = {
       stockCount,
       stockValue,
       stockSaleValue,
@@ -714,25 +776,21 @@ export default function App() {
       totalSales,
       totalPurchases,
       totalProfit,
-    });
+    };
 
-    const months = new Set<string>();
-    sales.forEach((s) => monthKey(s.sale_date) && months.add(monthKey(s.sale_date)));
-    expenses.forEach((e) => monthKey(e.date) && months.add(monthKey(e.date)));
-    vehicles.forEach(
-      (v) => monthKey(v.purchase_date) && months.add(monthKey(v.purchase_date)),
-    );
+    const allMonths = new Set<string>([
+      ...salesByMonth.keys(),
+      ...expensesByMonth.keys(),
+      ...purchasesByMonth.keys(),
+    ]);
 
-    const reports = Array.from(months)
-      .filter(Boolean)
+    const monthlyReports: MonthlyReport[] = Array.from(allMonths)
       .sort((a, b) => b.localeCompare(a))
       .slice(0, 12)
       .map((month) => {
-        const salesDetails = sales.filter((s) => monthKey(s.sale_date) === month);
-        const expenseDetails = expenses.filter((e) => monthKey(e.date) === month);
-        const purchaseDetails = vehicles.filter(
-          (v) => monthKey(v.purchase_date) === month,
-        );
+        const salesDetails = salesByMonth.get(month) || [];
+        const expenseDetails = expensesByMonth.get(month) || [];
+        const purchaseDetails = purchasesByMonth.get(month) || [];
 
         const revenue = salesDetails.reduce((sum, s) => sum + num(s.sale_price), 0);
         const grossProfit = salesDetails.reduce((sum, s) => sum + num(s.profit), 0);
@@ -786,8 +844,8 @@ export default function App() {
         };
       });
 
-    setMonthlyReports(reports);
-  };
+    return { stats, monthlyReports };
+  }, [vehicles, sales, expenses]);
 
   const handleEditVehicle = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
@@ -922,16 +980,36 @@ export default function App() {
     setIsChecklistModalOpen(true);
   };
 
-  const filteredVehicles = vehicles.filter((v) => {
+  const filteredVehicles = useMemo(() => {
     const q = vehicleSearch.trim().toLowerCase();
-    if (!q) return true;
+    if (!q) return vehicles;
 
-    return (
-      String(v.brand || '').toLowerCase().includes(q) ||
-      String(v.model || '').toLowerCase().includes(q) ||
-      String(v.plate || '').toLowerCase().includes(q)
-    );
-  });
+    return vehicles.filter((v) => {
+      return (
+        String(v.brand || '').toLowerCase().includes(q) ||
+        String(v.model || '').toLowerCase().includes(q) ||
+        String(v.plate || '').toLowerCase().includes(q)
+      );
+    });
+  }, [vehicles, vehicleSearch]);
+  const clientsTotalPages = Math.max(1, Math.ceil(clients.length / PAGE_SIZE));
+  const expensesTotalPages = Math.max(1, Math.ceil(expenses.length / PAGE_SIZE));
+  const salesTotalPages = Math.max(1, Math.ceil(sales.length / PAGE_SIZE));
+
+  const paginatedClients = useMemo(() => {
+    const start = (clientsPage - 1) * PAGE_SIZE;
+    return clients.slice(start, start + PAGE_SIZE);
+  }, [clients, clientsPage]);
+
+  const paginatedExpenses = useMemo(() => {
+    const start = (expensesPage - 1) * PAGE_SIZE;
+    return expenses.slice(start, start + PAGE_SIZE);
+  }, [expenses, expensesPage]);
+
+  const paginatedSales = useMemo(() => {
+    const start = (salesPage - 1) * PAGE_SIZE;
+    return sales.slice(start, start + PAGE_SIZE);
+  }, [sales, salesPage]);
 
   const menuItems = [
     { name: 'Início', icon: LayoutDashboard },
@@ -1191,6 +1269,7 @@ export default function App() {
                                         src={f.url}
                                         alt={f.original_name}
                                         className="w-full h-full object-cover"
+                                      loading="lazy"
                                       />
                                     ) : (
                                       <span className="text-xs text-zinc-400 p-3 text-center">
@@ -1252,7 +1331,7 @@ export default function App() {
                 </thead>
 
                 <tbody className="divide-y divide-zinc-100">
-                  {clients.map((c) => (
+                  {paginatedClients.map((c) => (
                     <tr key={c.id} className="hover:bg-zinc-900 transition-colors">
                       <td className="px-6 py-4 font-medium">{c.name}</td>
                       <td className="px-6 py-4 text-zinc-400">
@@ -1330,7 +1409,7 @@ export default function App() {
                 </thead>
 
                 <tbody className="divide-y divide-zinc-100">
-                  {expenses.map((e) => (
+                  {paginatedExpenses.map((e) => (
                     <tr key={e.id} className="hover:bg-zinc-900 transition-colors">
                       <td className="px-6 py-4 font-medium">
                         {e.brand} {e.model}
@@ -1405,7 +1484,7 @@ export default function App() {
                 </thead>
 
                 <tbody className="divide-y divide-zinc-100">
-                  {sales.map((s) => (
+                  {paginatedSales.map((s) => (
                     <tr key={s.id} className="hover:bg-zinc-900 transition-colors">
                       <td className="px-6 py-4 font-medium">
                         {s.brand} {s.model}
@@ -2575,7 +2654,7 @@ export default function App() {
                   </label>
                   <select name="client_id" required className={darkInputClass}>
                     <option value="">Selecione um cliente</option>
-                    {clients.map((c) => (
+                    {paginatedClients.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
                       </option>
@@ -2879,7 +2958,7 @@ export default function App() {
                     </label>
                     <select name="client_id" required className={darkInputClass}>
                       <option value="">Selecione um cliente</option>
-                      {clients.map((c) => (
+                      {paginatedClients.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name}
                         </option>
@@ -3127,6 +3206,17 @@ export default function App() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 

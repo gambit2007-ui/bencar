@@ -179,7 +179,7 @@ const formatYMD = (ymd?: string | null) => {
 const monthNames = [
   'Janeiro',
   'Fevereiro',
-  'MarÃ§o',
+  'Março',
   'Abril',
   'Maio',
   'Junho',
@@ -375,7 +375,7 @@ const VehicleCard = ({
             {vehicle.brand} {vehicle.model}
           </h3>
           <p className="text-sm text-zinc-400">
-            {vehicle.year} â€¢ {vehicle.color}
+            {vehicle.year} • {vehicle.color}
           </p>
         </div>
 
@@ -391,7 +391,7 @@ const VehicleCard = ({
           <button
             onClick={() => onDelete(vehicle.id)}
             className="p-2 text-red-500 hover:text-white hover:bg-red-600 rounded-lg transition-all border border-red-100 flex items-center gap-1"
-            title="Excluir VeÃ­culo"
+            title="Excluir Veículo"
           >
             <Trash2 className="w-4 h-4" />
             <span className="text-[10px] font-bold uppercase">Excluir</span>
@@ -452,7 +452,7 @@ export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState('InÃ­cio');
+  const [activeTab, setActiveTab] = useState('Início');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -1085,7 +1085,7 @@ export default function App() {
   const handleDeleteSale = async (id: number) => {
     if (
       !confirm(
-        "Tem certeza que deseja excluir este registro de venda? O veÃ­culo voltarÃ¡ para o status 'Em Estoque'.",
+        "Tem certeza que deseja excluir este registro de venda? O veículo voltará para o status 'Em Estoque'.",
       )
     ) {
       return;
@@ -1191,26 +1191,26 @@ export default function App() {
   }, [sales, salesPage]);
 
   const menuItems = [
-    { name: 'InÃ­cio', icon: LayoutDashboard },
+    { name: 'Início', icon: LayoutDashboard },
     { name: 'Carros/Motos', icon: Car },
     { name: 'Checklist', icon: ClipboardCheck },
     { name: 'Clientes', icon: Users },
     { name: 'Despesas', icon: Receipt },
     { name: 'Vendas', icon: DollarSign },
-    { name: 'RelatÃ³rios', icon: BarChart3 },
+    { name: 'Relatórios', icon: BarChart3 },
   ];
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'InÃ­cio':
+      case 'Início':
         return (
           <div className="space-y-8">
             <section>
-              <h2 className="text-xl font-bold text-white mb-4">AÃ§Ãµes RÃ¡pidas</h2>
+              <h2 className="text-xl font-bold text-white mb-4">Ações Rápidas</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <QuickAction
                   title="Cadastrar Carro"
-                  subtitle="Novo veÃ­culo"
+                  subtitle="Novo veículo"
                   icon={Car}
                   onClick={() => {
                     setSelectedVehicle(null);
@@ -1245,7 +1245,7 @@ export default function App() {
 
             <section className="space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <h2 className="text-xl font-bold text-white">Resumo do MÃªs</h2>
+                <h2 className="text-xl font-bold text-white">Resumo do Mês</h2>
                 <div className="flex items-center gap-2 bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800 text-sm font-medium text-zinc-600 capitalize">
                   <Calendar className="w-4 h-4" />
                   {monthLabel}
@@ -1254,7 +1254,7 @@ export default function App() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <StatCard
-                  title="Faturamento do MÃªs"
+                  title="Faturamento do Mês"
                   value={`R$ ${num(stats.monthlyRevenue).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                   })}`}
@@ -1262,7 +1262,7 @@ export default function App() {
                   colorClass="bg-orange-600"
                 />
                 <StatCard
-                  title="Despesas do MÃªs"
+                  title="Despesas do Mês"
                   value={`R$ ${num(stats.monthlyExpenses).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                   })}`}
@@ -1270,7 +1270,7 @@ export default function App() {
                   colorClass="bg-red-600"
                 />
                 <StatCard
-                  title="Lucro do MÃªs"
+                  title="Lucro do Mês"
                   value={`R$ ${num(stats.monthlyProfit).toLocaleString('pt-BR', {
                     minimumFractionDigits: 2,
                   })}`}
@@ -1289,7 +1289,7 @@ export default function App() {
               <div>
                 <h2 className="text-2xl font-bold text-white">Carros/Motos</h2>
                 <p className="text-zinc-400">
-                  {filteredVehicles.length} veÃ­culos (de {vehicles.length})
+                  {filteredVehicles.length} veículos (de {vehicles.length})
                 </p>
               </div>
 
@@ -1302,7 +1302,7 @@ export default function App() {
                 className="w-full sm:w-auto bg-orange-600 text-white px-4 py-2 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
               >
                 <Plus className="w-5 h-5" />
-                Novo VeÃ­culo
+                Novo Veículo
               </button>
             </div>
 
@@ -1334,8 +1334,8 @@ export default function App() {
                   <Car className="w-12 h-12 mx-auto mb-4 opacity-20" />
                   <p>
                     {vehicles.length === 0
-                      ? 'Nenhum veÃ­culo cadastrado.'
-                      : 'Nenhum veÃ­culo encontrado para essa busca.'}
+                      ? 'Nenhum veículo cadastrado.'
+                      : 'Nenhum veículo encontrado para essa busca.'}
                   </p>
                 </div>
               )}
@@ -1349,7 +1349,7 @@ export default function App() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-bold text-white">Checklist de Venda</h2>
-                <p className="text-zinc-400">Carro + Cliente + Fotos + ObservaÃ§Ãµes</p>
+                <p className="text-zinc-400">Carro + Cliente + Fotos + Observações</p>
               </div>
 
               <button
@@ -1373,7 +1373,7 @@ export default function App() {
                   <div className="p-5 flex items-center justify-between">
                     <div>
                       <p className="font-bold text-white">
-                        {formatYMD(sc.checklist_date)} â€¢ {sc.vehicle_brand}{' '}
+                        {formatYMD(sc.checklist_date)} • {sc.vehicle_brand}{' '}
                         {sc.vehicle_model} ({sc.vehicle_plate || 's/placa'})
                       </p>
                       <p className="text-sm text-zinc-400">
@@ -1414,7 +1414,7 @@ export default function App() {
                       {sc.observations && (
                         <div>
                           <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">
-                            ObservaÃ§Ãµes
+                            Observações
                           </p>
                           <p className="text-sm text-zinc-300 whitespace-pre-wrap">
                             {sc.observations}
@@ -1452,7 +1452,7 @@ export default function App() {
                                       />
                                     ) : (
                                       <span className="text-xs text-zinc-400 p-3 text-center">
-                                        ðŸ“„ {f.original_name}
+                                        📄 {f.original_name}
                                       </span>
                                     )}
                                   </div>
@@ -1505,7 +1505,7 @@ export default function App() {
                     <th className="px-6 py-4">Nome</th>
                     <th className="px-6 py-4">Contato</th>
                     <th className="px-6 py-4">Documento</th>
-                    <th className="px-6 py-4 text-right">AÃ§Ãµes</th>
+                    <th className="px-6 py-4 text-right">Ações</th>
                   </tr>
                 </thead>
 
@@ -1798,13 +1798,13 @@ export default function App() {
           </div>
         );
 
-      case 'RelatÃ³rios':
+      case 'Relatórios':
         return (
           <div className="space-y-6 pb-10">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <h2 className="text-2xl font-bold text-white">RelatÃ³rios Financeiros</h2>
+              <h2 className="text-2xl font-bold text-white">Relatórios Financeiros</h2>
               <div className="text-sm text-zinc-400 bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">
-                Ãšltimos 12 meses
+                Últimos 12 meses
               </div>
             </div>
 
@@ -1822,7 +1822,7 @@ export default function App() {
                 colorClass="bg-orange-500"
               />
               <StatCard
-                title="ProjeÃ§Ã£o de Venda"
+                title="Projeção de Venda"
                 value={`R$ ${num(stats.stockSaleValue).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                 icon={TrendingUp}
                 colorClass="bg-amber-500"
@@ -1870,8 +1870,8 @@ export default function App() {
                           {toMonthLabel(report.month)}
                         </p>
                         <p className="text-xs text-zinc-400">
-                          Entradas: R$ {num(report.revenue).toLocaleString('pt-BR')} â€¢
-                          SaÃ­das: R$ {(num(report.expenses) + num(report.purchases)).toLocaleString(
+                          Entradas: R$ {num(report.revenue).toLocaleString('pt-BR')} •
+                          Saídas: R$ {(num(report.expenses) + num(report.purchases)).toLocaleString(
                             'pt-BR',
                           )}
                         </p>
@@ -2034,12 +2034,12 @@ export default function App() {
 
                           <div>
                             <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                              MovimentaÃ§Ãµes do mÃªs
+                              Movimentações do mês
                             </p>
 
                             {report.cashflow.length === 0 ? (
                               <p className="text-sm text-zinc-400 italic">
-                                Nenhuma movimentaÃ§Ã£o registrada.
+                                Nenhuma movimentação registrada.
                               </p>
                             ) : (
                               <div className="space-y-2">
@@ -2050,7 +2050,7 @@ export default function App() {
                                   >
                                     <div>
                                       <p className="font-bold text-sm text-white">
-                                        {it.type} â€¢ {formatYMD(it.date)}
+                                        {it.type} • {formatYMD(it.date)}
                                       </p>
                                       <p className="text-xs text-zinc-400">
                                         {it.description}
@@ -2082,7 +2082,7 @@ export default function App() {
 
               {monthlyReports.length === 0 && (
                 <div className="py-16 text-center text-zinc-400 bg-zinc-950 rounded-2xl border border-zinc-800 border-dashed">
-                  Nenhum dado disponÃ­vel.
+                  Nenhum dado disponível.
                 </div>
               )}
             </div>
@@ -2136,7 +2136,7 @@ export default function App() {
           <div className="flex items-center gap-3">
             <img
               src="/bencar-logo.jpeg"
-              alt="Bencar AutomÃ³veis"
+              alt="Bencar Automóveis"
               className="h-10 w-auto object-contain"
             />
             <div className="leading-tight">
@@ -2144,7 +2144,7 @@ export default function App() {
                 BENCAR
               </h1>
               <p className="text-[10px] font-extrabold text-orange-400 tracking-widest">
-                AUTOMÃ“VEIS
+                AUTOMÓVEIS
               </p>
             </div>
           </div>
@@ -2226,7 +2226,7 @@ export default function App() {
         </div>
       </main>
 
-      {/* MODAL VEÃCULO */}
+      {/* MODAL VEÍCULO */}
       <AnimatePresence>
         {isAddModalOpen && (
           <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -2245,7 +2245,7 @@ export default function App() {
             >
               <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <h2 className="text-xl font-bold text-white">
-                  {selectedVehicle ? 'Editar VeÃ­culo' : 'Novo VeÃ­culo'}
+                  {selectedVehicle ? 'Editar Veículo' : 'Novo Veículo'}
                 </h2>
                 <button
                   onClick={() => setIsAddModalOpen(false)}
@@ -2324,7 +2324,7 @@ export default function App() {
                   } catch (err: any) {
                     console.error('Error saving vehicle:', err);
                     alert(
-                      `Erro ao salvar veÃ­culo: ${err.message || 'Erro desconhecido'}`,
+                      `Erro ao salvar veículo: ${err.message || 'Erro desconhecido'}`,
                     );
                   }
                 }}
@@ -2459,7 +2459,7 @@ export default function App() {
                       defaultValue={selectedVehicle?.status || 'Em Estoque'}
                       className={darkInputClass}
                     >
-                      <option value="Em PreparaÃ§Ã£o">Em PreparaÃ§Ã£o</option>
+                      <option value="Em Preparação">Em Preparação</option>
                       <option value="Em Estoque">Em Estoque</option>
                       <option value="Vendido">Vendido</option>
                     </select>
@@ -2468,19 +2468,19 @@ export default function App() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    DescriÃ§Ã£o
+                    Descrição
                   </label>
                   <textarea
                     name="description"
                     defaultValue={selectedVehicle?.description || ''}
                     rows={3}
                     className={darkInputClass}
-                    placeholder="ObservaÃ§Ãµes sobre o veÃ­culo..."
+                    placeholder="Observações sobre o veículo..."
                   />
 
                   <div className="space-y-2 mt-4">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      Anexos do VeÃ­culo (PDF/JPG/PNG)
+                      Anexos do Veículo (PDF/JPG/PNG)
                     </label>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -2526,7 +2526,7 @@ export default function App() {
                       </p>
                     )}
                     <p className="text-xs text-zinc-500">
-                      No celular, vocÃª pode abrir a cÃ¢mera e tirar a foto na hora.
+                      No celular, você pode abrir a câmera e tirar a foto na hora.
                     </p>
                   </div>
                 </div>
@@ -2558,7 +2558,7 @@ export default function App() {
                     type="submit"
                     className="flex-1 px-6 py-3 bg-orange-600 text-white rounded-xl font-bold hover:bg-orange-700 transition-colors shadow-lg shadow-red-600/20"
                   >
-                    {selectedVehicle ? 'Atualizar' : 'Salvar'} VeÃ­culo
+                    {selectedVehicle ? 'Atualizar' : 'Salvar'} Veículo
                   </button>
                 </div>
               </form>
@@ -2714,7 +2714,7 @@ export default function App() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    EndereÃ§o
+                    Endereço
                   </label>
                   <textarea
                     name="address"
@@ -2773,7 +2773,7 @@ export default function App() {
                   )}
 
                   <p className="text-xs text-zinc-500">
-                    No celular, vocÃª pode abrir a cÃ¢mera e tirar a foto na hora.
+                    No celular, você pode abrir a câmera e tirar a foto na hora.
                   </p>
                 </div>
 
@@ -2854,7 +2854,7 @@ export default function App() {
                     const clientId = clientIdRaw > 0 ? clientIdRaw : null;
 
                     const vehicle = vehicles.find((v) => v.id === vehicleId);
-                    if (!vehicle) throw new Error('VeÃ­culo nÃ£o encontrado');
+                    if (!vehicle) throw new Error('Veículo não encontrado');
 
                     const vehicleExpenses = expenses
                       .filter((ex) => Number(ex.vehicle_id) === vehicleId)
@@ -2903,10 +2903,10 @@ export default function App() {
               >
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    VeÃ­culo *
+                    Veículo *
                   </label>
                   <select name="vehicle_id" required className={darkInputClass}>
-                    <option value="">Selecione um veÃ­culo</option>
+                    <option value="">Selecione um veículo</option>
                     {vehicles
                       .filter((v) => v.status !== 'Vendido')
                       .map((v) => (
@@ -2965,13 +2965,13 @@ export default function App() {
                   <input
                     name="payment_method"
                     className={darkInputClass}
-                    placeholder="Ex: Ã€ vista, Financiamento..."
+                    placeholder="Ex: À vista, Financiamento..."
                   />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    ObservaÃ§Ãµes
+                    Observações
                   </label>
                   <textarea name="notes" rows={2} className={darkInputClass} />
                 </div>
@@ -3055,10 +3055,10 @@ export default function App() {
               >
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    VeÃ­culo *
+                    Veículo *
                   </label>
                   <select name="vehicle_id" required className={darkInputClass}>
-                    <option value="">Selecione um veÃ­culo</option>
+                    <option value="">Selecione um veículo</option>
                     {vehicles.map((v) => (
                       <option key={v.id} value={v.id}>
                         {v.brand} {v.model} ({v.plate})
@@ -3069,13 +3069,13 @@ export default function App() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    DescriÃ§Ã£o *
+                    Descrição *
                   </label>
                   <input
                     name="description"
                     required
                     className={darkInputClass}
-                    placeholder="Ex: Pintura, MecÃ¢nica..."
+                    placeholder="Ex: Pintura, Mecânica..."
                   />
                 </div>
 
@@ -3108,7 +3108,7 @@ export default function App() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    ObservaÃ§Ãµes
+                    Observações
                   </label>
                   <textarea name="notes" rows={2} className={darkInputClass} />
                 </div>
@@ -3209,10 +3209,10 @@ export default function App() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      VeÃ­culo *
+                      Veículo *
                     </label>
                     <select name="vehicle_id" required className={darkInputClass}>
-                      <option value="">Selecione um veÃ­culo</option>
+                      <option value="">Selecione um veículo</option>
                       {vehicles.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.brand} {v.model} ({v.plate || 's/placa'})
@@ -3250,13 +3250,13 @@ export default function App() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                    ObservaÃ§Ãµes
+                    Observações
                   </label>
                   <textarea
                     name="observations"
                     rows={5}
                     className={darkInputClass}
-                    placeholder="Fotos, detalhes do carro, condiÃ§Ãµes, combinado com o cliente..."
+                    placeholder="Fotos, detalhes do carro, condições, combinado com o cliente..."
                   />
                 </div>
 
@@ -3331,7 +3331,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* MODAL CHECKLIST VEÃCULO */}
+      {/* MODAL CHECKLIST VEÍCULO */}
       <AnimatePresence>
         {isChecklistModalOpen && selectedVehicle && (
           <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -3351,7 +3351,7 @@ export default function App() {
               <div className="p-4 sm:p-6 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    Checklist do VeÃ­culo
+                    Checklist do Veículo
                   </h2>
                   <p className="text-sm text-zinc-400">
                     {selectedVehicle.brand} {selectedVehicle.model} -{' '}
@@ -3377,7 +3377,7 @@ export default function App() {
                           Checklist Existente
                         </p>
                         <p className="text-xs text-zinc-400">
-                          Ãšltima atualizaÃ§Ã£o:{' '}
+                          Última atualização:{' '}
                           {new Date(currentChecklist.created_at || '').toLocaleString(
                             'pt-BR',
                           )}
@@ -3439,14 +3439,14 @@ export default function App() {
                 >
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                      ObservaÃ§Ãµes Gerais
+                      Observações Gerais
                     </label>
                     <textarea
                       name="observations"
                       defaultValue={currentChecklist?.observations || ''}
                       rows={4}
                       className={darkInputClass}
-                      placeholder="Descreva o estado do veÃ­culo, avarias, etc..."
+                      placeholder="Descreva o estado do veículo, avarias, etc..."
                     />
                   </div>
 
